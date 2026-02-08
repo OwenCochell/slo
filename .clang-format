@@ -1,0 +1,16 @@
+---
+BasedOnStyle: google
+IndentWidth: 4
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtTheStartOfBlocks: true
+SeparateDefinitionBlocks: Always
+PointerAlignment: Left
+ReferenceAlignment: Left
+IndentAccessModifiers: false
+AccessModifierOffset: -4
+IncludeBlocks: Preserve
+DerivePointerAlignment: false
+LambdaBodyIndentation: OuterScope
+RequiresExpressionIndentation: OuterScope
+AllowShortCompoundRequirementOnASingleLine: true
+BreakBeforeConceptDeclarations: Always
