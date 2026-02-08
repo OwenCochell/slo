@@ -1,2 +1,3 @@
 # slo
-Snail Logistics Orchestrator
+
+Snail Logistics Orchestrator -  A simple WIP system for managing snail terrariums.
