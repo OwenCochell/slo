@@ -1,0 +1,8 @@
+CompileFlags:
+  BuiltinHeaders: QueryDriver  # Enable system querying
+  CompilationDatabase: build  # Use CMake-generated compile_commands.json
+Diagnostics:
+  UnusedIncludes: Strict  # Report unused imports
+  MissingIncludes: Strict
+  ClangTidy:
+    FastCheckFilter: None
