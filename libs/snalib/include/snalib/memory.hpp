@@ -27,6 +27,8 @@ void* malloc(slb::size_t size);
 
 void* calloc(slb::size_t size);
 
+void* realloc(slb::size_t new_size);
+
 void free(void* ptr);
 
 }  // namespace slb::mem
