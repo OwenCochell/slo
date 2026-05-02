@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.25)
 set(CMAKE_FOLDER libs/snalib)
 
 add_library(snalib STATIC
-    src/memory.cpp
+    src/junk.cpp
 )
 
 target_include_directories(snalib
