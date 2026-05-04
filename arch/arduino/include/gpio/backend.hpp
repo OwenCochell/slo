@@ -12,12 +12,28 @@
 
 #pragma once
 
+#include <Arduino.h>
+
 #include <tenio/backend.hpp>
 
 namespace arduino::gpio {
 
-class ArdDigitalBackend : public tio::back::DigitalBackend {};
+class ArdDigitalBackend : public tio::back::DigitalBackend {
+public:
+    static bool dread(slb::size_t pnum) { return digitalRead(pnum) != 0; }
 
-class ArdAnalogueBackend : public tio::back::AnalogueBackend {};
+    static void dwrite(slb::size_t pnum, bool value) {
+        digitalWrite(pnum, value ? HIGH : LOW);
+    }
+};
+
+class ArdAnalogueBackend : public tio::back::AnalogueBackend<int> {
+public:
+    static ValueType aread(slb::size_t pnum) { return analogRead(pnum); }
+
+    static void awrite(slb::size_t pnum, ValueType val) {
+        analogWrite(pnum, val);
+    }
+};
 
 }  // namespace arduino::gpio
