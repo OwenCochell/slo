@@ -22,19 +22,20 @@ namespace tio::back {
 class DigitalBackend {
 private:
 public:
-    bool dread(slb::size_t pnum) { return false; };
+    bool dread(slb::size_t /*pnum*/) { return false; };
 
     void dwrite(slb::size_t pnum, bool val) {};
 };
 
+template <typename T>
 class AnalogueBackend {
 private:
 public:
     /// Numerical type for analogue values
     /// Should be wide enough to hold the maximum resolution of the analogue pin
-    using ValueType = uint32_t;
+    using ValueType = T;
 
-    ValueType aread(slb::size_t pnum) { return 0; }
+    ValueType aread(slb::size_t /*pnum*/) { return 0; }
 
     void awrite(slb::size_t pnum, ValueType val) {};
 };
