@@ -17,12 +17,15 @@ target_include_directories(snalib
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_link_libraries(snalib PUBLIC arch)
+# Link the architecture to this library
+slo_target_arch(snalib)
 
 target_compile_features(snalib PUBLIC cxx_std_20)
 
 enable_warnings(snalib)
 
-# Add tests for snalib
+# Add tests for snalib, but only if we are native
 
-add_subdirectory(test)
+if(NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(test)
+endif()
