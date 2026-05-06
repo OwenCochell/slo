@@ -21,6 +21,34 @@
 
 namespace tio::pin {
 
+enum class PinCaps : uint32_t {
+
+    /// Pin does not support any features
+    None = 0,
+
+    ///
+    // IO capabilities
+    ///
+
+    IN = 1 << 0,   // Supports input
+    OUT = 1 << 1,  // Supports output
+
+    ///
+    // Extra digital features
+    ///
+
+    PWM = 1 << 2,    // Supports PWM
+    PCM = 1 << 3,    // Supports PCM
+    CLOCK = 1 << 4,  // Supports CLOCK
+
+    ///
+    // Resistor Pull Values
+    ///
+
+    PULL_UP = 1 << 5,    // Supports pull-up resistor
+    PULL_DOWN = 1 << 6,  // Supports pull-down resistor
+};
+
 /**
  * @brief Determines the type of the pin
  *
@@ -55,22 +83,44 @@ enum class PinMode : uint8_t {
     // Supported I/O modes
     ///
 
-    INPUT,   // Supports input
-    OUTPUT,  // Supports output
-    IO,      // Supports both input and output
+    IN,   // Supports input
+    OUT,  // Supports output
+    IO,   // Supports both input and output
 };
 
-enum class DigitalPinFeats : uint8_t {
+enum class ResistorMode : uint8_t {
 
-    NONE,  // Pin only supports normal digital operations
+    NONE,  // No internal resistor configured
 
     ///
-    // Extra digital features
+    // Supported resistor modes
+    ///
+
+    PULL_UP,    // Pull-up resistor
+    PULL_DOWN,  // Pull-down resistor
+};
+
+/// TODO: Document these are mutually exclusive features
+enum class DigitalFeature : uint8_t {
+
+    NONE,  // No extra digital features supported
+
+    ///
+    // Supported digital features
     ///
 
     PWM,    // Supports PWM
     PCM,    // Supports PCM
     CLOCK,  // Supports CLOCK
+};
+
+struct PinConfig {
+
+    /// I/O type of this pin
+    PinMode mode = PinMode::NONE;
+
+    /// Resistor pull up/down configuration for this pin
+    ResistorMode rmode = ResistorMode::NONE;
 };
 
 /**
@@ -79,7 +129,7 @@ enum class DigitalPinFeats : uint8_t {
  * @tparam M Pin mode to check
  */
 template <PinMode M>
-concept writeable = (M == PinMode::OUTPUT || M == PinMode::IO);
+concept writeable = (M == PinMode::OUT || M == PinMode::IO);
 
 /**
  * @brief Concept that checks if the given pin mode supports reading
@@ -87,7 +137,7 @@ concept writeable = (M == PinMode::OUTPUT || M == PinMode::IO);
  * @tparam M Pin mode to check
  */
 template <PinMode M>
-concept readable = (M == PinMode::INPUT || M == PinMode::IO);
+concept readable = (M == PinMode::OUT || M == PinMode::IO);
 
 class Pin {
 private:
@@ -143,16 +193,14 @@ public:
 template <PinMode DM = PinMode::NONE>
 class DigitalPin : public Pin {
 private:
-    /// Extra features of this digital pin, such as PWM or PCM support
-    DigitalPinFeats feats = DigitalPinFeats::NONE;
+    /// Current mode of this digital pin
+    PinMode mode = DM;
 
 public:
     constexpr DigitalPin() = default;
 
     constexpr DigitalPin(slb::size_t num, slb::size_t pnum)
         : Pin(num, pnum, PinType::GPIO) {}
-
-    constexpr DigitalPinFeats dfeats() const { return feats; }
 
     /**
      * @brief Preforms a digital read on this pin
@@ -193,12 +241,15 @@ public:
      *
      * @return PinMode I/O modes supported by this pin
      */
-    constexpr PinMode dmode() const { return DM; }
+    constexpr PinMode sdmode() const { return DM; }
 };
 
-template <PinMode AM = PinMode::NONE, PinMode DM = PinMode::NONE>
+template <typename B, PinMode AM = PinMode::NONE, PinMode DM = PinMode::NONE>
 class AnaloguePin : public DigitalPin<DM> {
 private:
+    /// Backend for this pin, used to perform operations on the physical pin
+    using BT = B;
+
     /// Current mode of this analogue pin
     PinMode mode = AM;
 
@@ -237,6 +288,38 @@ public:
      * @return constexpr PinMode Current pin mode
      */
     constexpr PinMode amode() const { return mode; }
+
+    /**
+     * @brief Sets the current mode of this analogue pin
+     *
+     * This will change the mode that this pin is operating in. This may be
+     * changed at runtime, but the new mode must be supported by this pin,
+     * otherwise this function will fail.
+     *
+     * @param new_mode New mode for this pin to operate in
+     * @return bool True if the mode was successfully changed, false otherwise
+     */
+    constexpr bool amode(PinMode new_mode) {
+
+        // First, ensure that the new mode is supported by this pin
+        // This will only fail if the new mode is not supported
+
+        if (new_mode == PinMode::NONE || new_mode == AM || AM == PinMode::IO) {
+
+            // Set the new mode internally
+
+            mode = new_mode;
+
+            // Invoke the backend mode function to change the mode of the
+            // physical pin
+
+            return BT::amode(this->get_pnum(), new_mode);
+        }
+
+        // We failed, return false
+
+        return false;
+    }
 };
 
 /**
